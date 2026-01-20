@@ -100,10 +100,10 @@ Class MainWindow
     Private Sub ToggleFavoritesPanel()
         _isFavoritesPanelOpen = Not _isFavoritesPanelOpen
 
-        ' Update star icon color
+        ' Update star icon color (gold when active, dark grey when inactive)
         FavoritesIcon.Fill = If(_isFavoritesPanelOpen,
             New SolidColorBrush(CType(ColorConverter.ConvertFromString("#FFD700"), Color)),
-            New SolidColorBrush(CType(ColorConverter.ConvertFromString("#888888"), Color)))
+            New SolidColorBrush(CType(ColorConverter.ConvertFromString("#5A5A5A"), Color)))
 
         If _isFavoritesPanelOpen Then
             ' Position the popup at the right edge of the content area
@@ -200,10 +200,10 @@ Class MainWindow
     Private Sub ToggleSettingsPanel()
         _isSettingsPanelOpen = Not _isSettingsPanelOpen
 
-        ' Update settings icon color (silver when active)
+        ' Update settings icon color (silver when active, dark grey when inactive)
         SettingsIcon.Fill = If(_isSettingsPanelOpen,
             New SolidColorBrush(CType(ColorConverter.ConvertFromString("#C0C0C0"), Color)),
-            New SolidColorBrush(CType(ColorConverter.ConvertFromString("#888888"), Color)))
+            New SolidColorBrush(CType(ColorConverter.ConvertFromString("#5A5A5A"), Color)))
 
         If _isSettingsPanelOpen Then
             PositionSettingsPopup()
