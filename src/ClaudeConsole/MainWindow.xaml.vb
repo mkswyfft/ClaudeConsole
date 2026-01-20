@@ -41,19 +41,28 @@ Class MainWindow
         _viewModel.Shutdown()
     End Sub
 
-    Private Sub MenuExit_Click(sender As Object, e As RoutedEventArgs)
-        Close()
+    Private Sub FavoritesButton_Click(sender As Object, e As RoutedEventArgs)
+        MessageBox.Show("Favorites management will be available in a future update." & vbCrLf & vbCrLf &
+                        "You'll be able to:" & vbCrLf &
+                        "• Save favorite folders" & vbCrLf &
+                        "• Save favorite commands" & vbCrLf &
+                        "• Quickly launch projects", "Favorites", MessageBoxButton.OK, MessageBoxImage.Information)
     End Sub
 
-    Private Sub MenuManageFavorites_Click(sender As Object, e As RoutedEventArgs)
-        MessageBox.Show("Favorites management will be available in a future update.", "Manage Favorites", MessageBoxButton.OK, MessageBoxImage.Information)
+    Private Sub SettingsButton_Click(sender As Object, e As RoutedEventArgs)
+        MessageBox.Show("Settings will be available in a future update." & vbCrLf & vbCrLf &
+                        "Planned settings:" & vbCrLf &
+                        "• Theme customization" & vbCrLf &
+                        "• Font settings" & vbCrLf &
+                        "• Claude CLI configuration", "Settings", MessageBoxButton.OK, MessageBoxImage.Information)
     End Sub
 
-    Private Sub MenuAppearance_Click(sender As Object, e As RoutedEventArgs)
-        MessageBox.Show("Appearance settings will be available in a future update.", "Appearance", MessageBoxButton.OK, MessageBoxImage.Information)
-    End Sub
-
-    Private Sub MenuAbout_Click(sender As Object, e As RoutedEventArgs)
-        MessageBox.Show("ClaudeConsole" & vbCrLf & vbCrLf & "A terminal-like application for Claude AI" & vbCrLf & "Version 1.0.0", "About ClaudeConsole", MessageBoxButton.OK, MessageBoxImage.Information)
+    Private Sub HelpButton_Click(sender As Object, e As RoutedEventArgs)
+        MessageBox.Show("ClaudeConsole" & vbCrLf & vbCrLf &
+                        "A terminal-like application for Claude AI" & vbCrLf &
+                        "Version 1.0.0" & vbCrLf & vbCrLf &
+                        "Keyboard Shortcuts:" & vbCrLf &
+                        "• Ctrl+T - New Tab" & vbCrLf &
+                        "• Ctrl+W - Close Tab", "About ClaudeConsole", MessageBoxButton.OK, MessageBoxImage.Information)
     End Sub
 End Class
