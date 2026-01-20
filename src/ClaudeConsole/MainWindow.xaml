@@ -10,7 +10,7 @@
         Height="700" Width="1000"
         Background="#1E1E1E"
         WindowStartupLocation="CenterScreen"
-        Icon="icon.ico"
+        Icon="pack://application:,,,/icon.ico"
         Closing="Window_Closing">
 
     <Window.Resources>

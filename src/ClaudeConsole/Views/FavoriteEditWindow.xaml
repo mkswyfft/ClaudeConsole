@@ -10,7 +10,7 @@
         Background="#1E1E1E"
         ShowInTaskbar="False"
         ResizeMode="NoResize"
-        Icon="/icon.ico"
+        Icon="pack://application:,,,/icon.ico"
         Loaded="Window_Loaded">
 
     <Window.Resources>

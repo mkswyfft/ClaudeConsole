@@ -37,4 +37,8 @@
     </Content>
   </ItemGroup>
 
+  <ItemGroup>
+    <Resource Include="icon.ico" />
+  </ItemGroup>
+
 </Project>
