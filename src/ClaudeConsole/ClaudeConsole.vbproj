@@ -5,7 +5,8 @@
     <TargetFramework>net8.0-windows</TargetFramework>
     <RootNamespace>ClaudeConsole</RootNamespace>
     <UseWPF>true</UseWPF>
-    <!-- Uncomment when icon is available: <ApplicationIcon>..\..\assets\icons\claudeconsole.ico</ApplicationIcon> -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <ApplicationIcon>icon.ico</ApplicationIcon>
   </PropertyGroup>
 
   <ItemGroup>
@@ -22,7 +23,18 @@
 
   <ItemGroup>
     <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+    <PackageReference Include="Microsoft.Web.WebView2" Version="1.0.3650.58" />
+    <PackageReference Include="Nerdbank.GitVersioning" Version="3.9.50">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="System.Text.Json" Version="10.0.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Resources\terminal.html">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
 </Project>

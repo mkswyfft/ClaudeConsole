@@ -10,7 +10,78 @@
         Height="700" Width="1000"
         Background="#1E1E1E"
         WindowStartupLocation="CenterScreen"
+        Icon="icon.ico"
         Closing="Window_Closing">
+
+    <Window.Resources>
+        <!-- Dark Mode Scrollbar Style -->
+        <Style x:Key="DarkScrollBar" TargetType="ScrollBar">
+            <Setter Property="Background" Value="#1E1E1E"/>
+            <Setter Property="Width" Value="12"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ScrollBar">
+                        <Grid Background="#252526">
+                            <Track x:Name="PART_Track" IsDirectionReversed="True">
+                                <Track.Thumb>
+                                    <Thumb Background="#3D3D3D" BorderThickness="0">
+                                        <Thumb.Style>
+                                            <Style TargetType="Thumb">
+                                                <Setter Property="Template">
+                                                    <Setter.Value>
+                                                        <ControlTemplate TargetType="Thumb">
+                                                            <Border Background="{TemplateBinding Background}"
+                                                                    CornerRadius="5" Margin="2"/>
+                                                        </ControlTemplate>
+                                                    </Setter.Value>
+                                                </Setter>
+                                                <Style.Triggers>
+                                                    <Trigger Property="IsMouseOver" Value="True">
+                                                        <Setter Property="Background" Value="#4D4D4D"/>
+                                                    </Trigger>
+                                                    <Trigger Property="IsDragging" Value="True">
+                                                        <Setter Property="Background" Value="#5D5D5D"/>
+                                                    </Trigger>
+                                                </Style.Triggers>
+                                            </Style>
+                                        </Thumb.Style>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Favorites Panel Button Style -->
+        <Style x:Key="FavoritesPanelButton" TargetType="Button">
+            <Setter Property="Background" Value="#3D3D3D"/>
+            <Setter Property="Foreground" Value="#CCCCCC"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="12,8"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#4D4D4D"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#5D5D5D"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
 
     <Window.InputBindings>
         <KeyBinding Key="T" Modifiers="Ctrl" Command="{Binding NewTabCommand}"/>
@@ -33,7 +104,8 @@
                             ToolTip="Favorites"
                             Click="FavoritesButton_Click"
                             Style="{StaticResource IconButton}">
-                        <Path Data="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
+                        <Path x:Name="FavoritesIcon"
+                              Data="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
                               Fill="#888888" Width="16" Height="16" Stretch="Uniform"/>
                     </Button>
 
@@ -42,7 +114,8 @@
                             ToolTip="Settings"
                             Click="SettingsButton_Click"
                             Style="{StaticResource IconButton}">
-                        <Path Data="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"
+                        <Path x:Name="SettingsIcon"
+                              Data="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.5,5.32 14.87,5.07L14.5,2.42C14.46,2.18 14.25,2 14,2H10C9.75,2 9.54,2.18 9.5,2.42L9.13,5.07C8.5,5.32 7.96,5.66 7.44,6.05L4.95,5.05C4.73,4.96 4.46,5.05 4.34,5.27L2.34,8.73C2.21,8.95 2.27,9.22 2.46,9.37L4.57,11C4.53,11.34 4.5,11.67 4.5,12C4.5,12.33 4.53,12.65 4.57,12.97L2.46,14.63C2.27,14.78 2.21,15.05 2.34,15.27L4.34,18.73C4.46,18.95 4.73,19.03 4.95,18.95L7.44,17.94C7.96,18.34 8.5,18.68 9.13,18.93L9.5,21.58C9.54,21.82 9.75,22 10,22H14C14.25,22 14.46,21.82 14.5,21.58L14.87,18.93C15.5,18.67 16.04,18.34 16.56,17.94L19.05,18.95C19.27,19.03 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z"
                               Fill="#888888" Width="16" Height="16" Stretch="Uniform"/>
                     </Button>
 
@@ -143,15 +216,288 @@
             </DockPanel>
         </Border>
 
-        <!-- Tab Content Area -->
-        <Border Grid.Row="1" Background="#1E1E1E">
-            <ContentControl Content="{Binding SelectedTab}">
-                <ContentControl.ContentTemplate>
+        <!-- Tab Content Area - Full width -->
+        <Border x:Name="ContentArea" Grid.Row="1" Background="#1E1E1E">
+            <ItemsControl ItemsSource="{Binding Tabs}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <Grid/>
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="{x:Type vm:TabViewModel}">
-                        <local:TerminalView DataContext="{Binding}"/>
+                        <local:TerminalView DataContext="{Binding}">
+                            <local:TerminalView.Style>
+                                <Style TargetType="local:TerminalView">
+                                    <Setter Property="Visibility" Value="Collapsed"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                            <Setter Property="Visibility" Value="Visible"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </local:TerminalView.Style>
+                        </local:TerminalView>
                     </DataTemplate>
-                </ContentControl.ContentTemplate>
-            </ContentControl>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
         </Border>
+
+        <!-- Favorites Slide-out Panel (Popup to overlay WebView2) -->
+        <Popup x:Name="FavoritesPopup"
+               PlacementTarget="{Binding ElementName=ContentArea}"
+               Placement="Custom"
+               StaysOpen="True"
+               AllowsTransparency="True"
+               PopupAnimation="None">
+            <Border x:Name="FavoritesPanel"
+                    Background="#252526"
+                    Width="280">
+                <Border.RenderTransform>
+                    <TranslateTransform x:Name="FavoritesPanelTransform" X="280"/>
+                </Border.RenderTransform>
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="15" ShadowDepth="-5" Opacity="0.5" Direction="180"/>
+                </Border.Effect>
+
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Header -->
+                <Border Grid.Row="0" Background="#1E1E1E" Padding="15,12">
+                    <TextBlock Text="Favorites"
+                               FontSize="16"
+                               FontWeight="SemiBold"
+                               Foreground="White"/>
+                </Border>
+
+                <!-- Favorites List -->
+                <ListBox x:Name="FavoritesList"
+                         Grid.Row="1"
+                         Background="Transparent"
+                         BorderThickness="0"
+                         Foreground="#CCCCCC"
+                         SelectionMode="Single"
+                         MouseDoubleClick="FavoritesList_MouseDoubleClick"
+                         ScrollViewer.VerticalScrollBarVisibility="Auto">
+                    <ListBox.Resources>
+                        <Style TargetType="ScrollBar" BasedOn="{StaticResource DarkScrollBar}"/>
+                    </ListBox.Resources>
+                    <ListBox.ItemTemplate>
+                        <DataTemplate>
+                            <Grid Margin="5,3">
+                                <Grid.ColumnDefinitions>
+                                    <ColumnDefinition Width="Auto"/>
+                                    <ColumnDefinition Width="*"/>
+                                    <ColumnDefinition Width="Auto"/>
+                                </Grid.ColumnDefinitions>
+
+                                <!-- Star Icon -->
+                                <Path Grid.Column="0"
+                                      Data="M12,17.27L18.18,21L16.54,13.97L22,9.24L14.81,8.62L12,2L9.19,8.62L2,9.24L7.45,13.97L5.82,21L12,17.27Z"
+                                      Fill="#FFD700"
+                                      Width="14" Height="14"
+                                      Stretch="Uniform"
+                                      Margin="0,0,8,0"
+                                      VerticalAlignment="Center"/>
+
+                                <!-- Name and Description -->
+                                <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                                    <TextBlock Text="{Binding Name}"
+                                               FontWeight="SemiBold"
+                                               FontSize="13"
+                                               Foreground="White"
+                                               TextTrimming="CharacterEllipsis"/>
+                                    <TextBlock Text="{Binding Description}"
+                                               FontSize="10"
+                                               Foreground="#666666"
+                                               TextTrimming="CharacterEllipsis"/>
+                                </StackPanel>
+
+                                <!-- Delete Button -->
+                                <Button x:Name="DeleteButton"
+                                        Grid.Column="2"
+                                        Content="×"
+                                        Click="DeleteFavorite_Click"
+                                        Tag="{Binding}"
+                                        ToolTip="Delete"
+                                        Width="20" Height="20"
+                                        FontSize="14"
+                                        Foreground="#666666"
+                                        Background="Transparent"
+                                        BorderThickness="0"
+                                        Cursor="Hand"
+                                        VerticalAlignment="Center"
+                                        Visibility="Hidden"/>
+                            </Grid>
+                            <DataTemplate.Triggers>
+                                <DataTrigger Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=ListBoxItem}}" Value="True">
+                                    <Setter TargetName="DeleteButton" Property="Visibility" Value="Visible"/>
+                                </DataTrigger>
+                            </DataTemplate.Triggers>
+                        </DataTemplate>
+                    </ListBox.ItemTemplate>
+                    <ListBox.ItemContainerStyle>
+                        <Style TargetType="ListBoxItem">
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="Padding" Value="10,6"/>
+                            <Setter Property="Template">
+                                <Setter.Value>
+                                    <ControlTemplate TargetType="ListBoxItem">
+                                        <Border x:Name="Border"
+                                                Background="{TemplateBinding Background}"
+                                                Padding="{TemplateBinding Padding}"
+                                                Margin="5,1">
+                                            <ContentPresenter/>
+                                        </Border>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="Border" Property="Background" Value="#3D3D3D"/>
+                                            </Trigger>
+                                            <Trigger Property="IsSelected" Value="True">
+                                                <Setter TargetName="Border" Property="Background" Value="#094771"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Setter.Value>
+                            </Setter>
+                        </Style>
+                    </ListBox.ItemContainerStyle>
+                </ListBox>
+
+                <!-- Empty State -->
+                <TextBlock x:Name="EmptyFavoritesText"
+                           Grid.Row="1"
+                           Text="No favorites yet.&#x0a;Click Add to create one."
+                           Foreground="#666666"
+                           FontSize="12"
+                           TextAlignment="Center"
+                           HorizontalAlignment="Center"
+                           VerticalAlignment="Center"
+                           Visibility="Collapsed"/>
+
+                <!-- Add Button -->
+                <Border Grid.Row="2" Background="#1E1E1E" Padding="10">
+                    <Button Content="+ Add Favorite"
+                            Click="AddFavorite_Click"
+                            Style="{StaticResource FavoritesPanelButton}"/>
+                </Border>
+            </Grid>
+            </Border>
+        </Popup>
+
+        <!-- Settings Slide-out Panel -->
+        <Popup x:Name="SettingsPopup"
+               PlacementTarget="{Binding ElementName=ContentArea}"
+               Placement="Custom"
+               StaysOpen="True"
+               AllowsTransparency="True"
+               PopupAnimation="None">
+            <Border x:Name="SettingsPanel"
+                    Background="#252526"
+                    Width="320">
+                <Border.RenderTransform>
+                    <TranslateTransform x:Name="SettingsPanelTransform" X="320"/>
+                </Border.RenderTransform>
+                <Border.Effect>
+                    <DropShadowEffect BlurRadius="15" ShadowDepth="-5" Opacity="0.5" Direction="180"/>
+                </Border.Effect>
+
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
+
+                    <!-- Header -->
+                    <Border Grid.Row="0" Background="#1E1E1E" Padding="15,12">
+                        <TextBlock Text="Settings"
+                                   FontSize="16"
+                                   FontWeight="SemiBold"
+                                   Foreground="White"/>
+                    </Border>
+
+                    <!-- Settings Content -->
+                    <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
+                        <ScrollViewer.Resources>
+                            <Style TargetType="ScrollBar" BasedOn="{StaticResource DarkScrollBar}"/>
+                        </ScrollViewer.Resources>
+                        <StackPanel Margin="15">
+                            <!-- Appearance Section -->
+                            <TextBlock Text="APPEARANCE" FontSize="11" Foreground="#888888" Margin="0,0,0,10"/>
+
+                            <!-- Font Size -->
+                            <TextBlock Text="Terminal Font Size" Foreground="#CCCCCC" Margin="0,0,0,5"/>
+                            <ComboBox x:Name="FontSizeComboBox"
+                                      Background="#3D3D3D"
+                                      Foreground="White"
+                                      Margin="0,0,0,15">
+                                <ComboBoxItem Content="12" Tag="12"/>
+                                <ComboBoxItem Content="14" Tag="14" IsSelected="True"/>
+                                <ComboBoxItem Content="16" Tag="16"/>
+                                <ComboBoxItem Content="18" Tag="18"/>
+                                <ComboBoxItem Content="20" Tag="20"/>
+                            </ComboBox>
+
+                            <!-- Separator -->
+                            <Border Height="1" Background="#3D3D3D" Margin="0,5,0,15"/>
+
+                            <!-- Sessions Section -->
+                            <TextBlock Text="SESSIONS" FontSize="11" Foreground="#888888" Margin="0,0,0,10"/>
+
+                            <!-- Restore Sessions -->
+                            <CheckBox x:Name="RestoreSessionsCheckBox"
+                                      Content="Restore sessions on startup"
+                                      Foreground="#CCCCCC"
+                                      Margin="0,0,0,10"/>
+
+                            <!-- Auto-save Sessions -->
+                            <CheckBox x:Name="AutoSaveSessionsCheckBox"
+                                      Content="Auto-save sessions on close"
+                                      Foreground="#CCCCCC"
+                                      IsChecked="True"
+                                      Margin="0,0,0,15"/>
+
+                            <!-- Separator -->
+                            <Border Height="1" Background="#3D3D3D" Margin="0,5,0,15"/>
+
+                            <!-- Claude CLI Section -->
+                            <TextBlock Text="CLAUDE CLI" FontSize="11" Foreground="#888888" Margin="0,0,0,10"/>
+
+                            <!-- Claude Path -->
+                            <TextBlock Text="Claude CLI Path (leave empty for default)" Foreground="#CCCCCC" Margin="0,0,0,5"/>
+                            <TextBox x:Name="ClaudePathTextBox"
+                                     Background="#3D3D3D"
+                                     Foreground="White"
+                                     BorderBrush="#4D4D4D"
+                                     Padding="8,6"
+                                     Margin="0,0,0,15"/>
+
+                            <!-- Separator -->
+                            <Border Height="1" Background="#3D3D3D" Margin="0,5,0,15"/>
+
+                            <!-- Saved Sessions Section -->
+                            <TextBlock Text="SAVED SESSIONS" FontSize="11" Foreground="#888888" Margin="0,0,0,10"/>
+
+                            <Button Content="Manage Saved Sessions..."
+                                    Click="ManageSessions_Click"
+                                    Style="{StaticResource FavoritesPanelButton}"
+                                    HorizontalAlignment="Left"
+                                    Margin="0,0,0,15"/>
+
+                            <!-- About Section -->
+                            <Border Height="1" Background="#3D3D3D" Margin="0,5,0,15"/>
+                            <TextBlock Text="ABOUT" FontSize="11" Foreground="#888888" Margin="0,0,0,10"/>
+                            <TextBlock Text="ClaudeConsole v1.0.0" Foreground="#666666" FontSize="11"/>
+                            <TextBlock Text="A terminal interface for Claude AI" Foreground="#666666" FontSize="11"/>
+                        </StackPanel>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Popup>
     </Grid>
 </Window>

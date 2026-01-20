@@ -30,7 +30,14 @@ Namespace ViewModels
                 Return _selectedTab
             End Get
             Set(value As TabViewModel)
+                ' Update IsSelected on tabs
+                If _selectedTab IsNot Nothing Then
+                    _selectedTab.IsSelected = False
+                End If
                 SetProperty(_selectedTab, value)
+                If _selectedTab IsNot Nothing Then
+                    _selectedTab.IsSelected = True
+                End If
             End Set
         End Property
 
@@ -104,8 +111,26 @@ Namespace ViewModels
         End Sub
 
         Private Sub CreateNewTab()
+            CreateNewTabWithFavorite(Nothing, Nothing)
+        End Sub
+
+        ''' <summary>
+        ''' Creates a new tab with the specified working directory and title.
+        ''' </summary>
+        ''' <param name="workingDirectory">The working directory for the new tab.</param>
+        ''' <param name="title">The title for the new tab.</param>
+        Public Sub CreateNewTabWithFavorite(workingDirectory As String, title As String)
             Dim tab As New TabViewModel(_dispatcher)
-            tab.Title = $"Session {Tabs.Count + 1}"
+
+            If Not String.IsNullOrWhiteSpace(workingDirectory) Then
+                tab.WorkingDirectory = workingDirectory
+            End If
+
+            If Not String.IsNullOrWhiteSpace(title) Then
+                tab.Title = title
+            Else
+                tab.Title = $"Session {Tabs.Count + 1}"
+            End If
 
             AddHandler tab.CloseRequested, AddressOf OnTabCloseRequested
 

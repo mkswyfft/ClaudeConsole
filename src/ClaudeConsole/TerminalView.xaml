@@ -4,96 +4,15 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:ClaudeConsole"
+             xmlns:wv2="clr-namespace:Microsoft.Web.WebView2.Wpf;assembly=Microsoft.Web.WebView2.Wpf"
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800"
              Background="#1E1E1E"
-             Loaded="TerminalView_Loaded">
+             Loaded="TerminalView_Loaded"
+             Unloaded="TerminalView_Unloaded">
 
     <Grid>
-        <Grid.RowDefinitions>
-            <RowDefinition Height="Auto"/>
-            <RowDefinition Height="*"/>
-            <RowDefinition Height="Auto"/>
-        </Grid.RowDefinitions>
-
-        <!-- Toolbar -->
-        <Border Grid.Row="0" Background="#2D2D2D" Padding="5">
-            <DockPanel>
-                <StackPanel DockPanel.Dock="Left" Orientation="Horizontal">
-                    <Button Content="Start"
-                            Command="{Binding StartCommand}"
-                            Style="{StaticResource ToolbarButton}"
-                            Margin="0,0,5,0"/>
-                    <Button Content="Stop"
-                            Command="{Binding StopCommand}"
-                            Style="{StaticResource ToolbarButton}"
-                            Margin="0,0,5,0"/>
-                    <Button Content="Clear"
-                            Command="{Binding ClearCommand}"
-                            Style="{StaticResource ToolbarButton}"/>
-                </StackPanel>
-                <TextBlock DockPanel.Dock="Right"
-                           Text="{Binding WorkingDirectory}"
-                           Foreground="#888888"
-                           VerticalAlignment="Center"
-                           Margin="10,0"/>
-                <Rectangle/> <!-- Spacer -->
-            </DockPanel>
-        </Border>
-
-        <!-- Output Area -->
-        <Border Grid.Row="1" Background="#1E1E1E" Margin="5">
-            <FlowDocumentScrollViewer x:Name="OutputViewer"
-                                      Document="{Binding OutputDocument}"
-                                      VerticalScrollBarVisibility="Auto"
-                                      HorizontalScrollBarVisibility="Auto"
-                                      IsToolBarVisible="False"
-                                      Background="#1E1E1E"
-                                      Foreground="LightGray">
-                <FlowDocumentScrollViewer.Resources>
-                    <Style TargetType="Paragraph">
-                        <Setter Property="Margin" Value="0"/>
-                    </Style>
-                </FlowDocumentScrollViewer.Resources>
-            </FlowDocumentScrollViewer>
-        </Border>
-
-        <!-- Input Area -->
-        <Border Grid.Row="2" Background="#2D2D2D" Padding="5">
-            <Grid>
-                <Grid.ColumnDefinitions>
-                    <ColumnDefinition Width="Auto"/>
-                    <ColumnDefinition Width="*"/>
-                    <ColumnDefinition Width="Auto"/>
-                </Grid.ColumnDefinitions>
-
-                <TextBlock Grid.Column="0"
-                           Text=">"
-                           Foreground="#00FF00"
-                           FontFamily="Consolas"
-                           FontSize="14"
-                           VerticalAlignment="Center"
-                           Margin="5,0"/>
-
-                <TextBox x:Name="InputTextBox"
-                         Grid.Column="1"
-                         Text="{Binding InputText, UpdateSourceTrigger=PropertyChanged}"
-                         Background="#1E1E1E"
-                         Foreground="White"
-                         CaretBrush="White"
-                         BorderThickness="0"
-                         FontFamily="Consolas"
-                         FontSize="14"
-                         Padding="5"
-                         VerticalContentAlignment="Center"
-                         KeyDown="OnInputKeyDown"/>
-
-                <Button Grid.Column="2"
-                        Content="Send"
-                        Command="{Binding SendCommand}"
-                        Style="{StaticResource ToolbarButton}"
-                        Margin="5,0,0,0"/>
-            </Grid>
-        </Border>
+        <wv2:WebView2 x:Name="WebView"
+                      DefaultBackgroundColor="#1E1E1E"/>
     </Grid>
 </UserControl>

@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Terminal</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xterm@5.3.0/css/xterm.css" />
+    <style>
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden;
+            background-color: #1e1e1e;
+        }
+        #terminal {
+            height: 100%;
+            width: 100%;
+        }
+
+        /* Dark scrollbar styling for xterm.js */
+        .xterm-viewport::-webkit-scrollbar {
+            width: 12px;
+            background: #252526;
+        }
+        .xterm-viewport::-webkit-scrollbar-track {
+            background: #252526;
+        }
+        .xterm-viewport::-webkit-scrollbar-thumb {
+            background: #3d3d3d;
+            border-radius: 6px;
+            border: 2px solid #252526;
+        }
+        .xterm-viewport::-webkit-scrollbar-thumb:hover {
+            background: #4d4d4d;
+        }
+        .xterm-viewport::-webkit-scrollbar-thumb:active {
+            background: #5d5d5d;
+        }
+
+        /* Firefox scrollbar */
+        .xterm-viewport {
+            scrollbar-width: thin;
+            scrollbar-color: #3d3d3d #252526;
+        }
+    </style>
+</head>
+<body>
+    <div id="terminal"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/xterm@5.3.0/lib/xterm.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-fit@0.8.0/lib/xterm-addon-fit.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xterm-addon-web-links@0.9.0/lib/xterm-addon-web-links.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@xterm/addon-clipboard@0.1.0/lib/addon-clipboard.js"></script>
+
+    <script>
+        // Create terminal with dark theme - convertEol ensures proper line handling
+        const term = new Terminal({
+            cursorBlink: true,
+            fontSize: 14,
+            fontFamily: 'Consolas, "Courier New", monospace',
+            convertEol: true,
+            theme: {
+                background: '#1e1e1e',
+                foreground: '#cccccc',
+                cursor: '#ffffff',
+                cursorAccent: '#1e1e1e',
+                selectionBackground: '#264f78',
+                black: '#000000',
+                red: '#cd3131',
+                green: '#0dbc79',
+                yellow: '#e5e510',
+                blue: '#2472c8',
+                magenta: '#bc3fbc',
+                cyan: '#11a8cd',
+                white: '#e5e5e5',
+                brightBlack: '#666666',
+                brightRed: '#f14c4c',
+                brightGreen: '#23d18b',
+                brightYellow: '#f5f543',
+                brightBlue: '#3b8eea',
+                brightMagenta: '#d670d6',
+                brightCyan: '#29b8db',
+                brightWhite: '#ffffff'
+            }
+        });
+
+        // Add fit addon for auto-resizing
+        const fitAddon = new FitAddon.FitAddon();
+        term.loadAddon(fitAddon);
+
+        // Add web links addon
+        const webLinksAddon = new WebLinksAddon.WebLinksAddon();
+        term.loadAddon(webLinksAddon);
+
+        // Open terminal in container
+        term.open(document.getElementById('terminal'));
+        fitAddon.fit();
+
+        // Handle clipboard copy/paste with keyboard shortcuts
+        term.attachCustomKeyEventHandler((event) => {
+            // Ctrl+C when text is selected = copy
+            if (event.ctrlKey && event.key === 'c' && term.hasSelection()) {
+                navigator.clipboard.writeText(term.getSelection());
+                return false; // Prevent default (don't send Ctrl+C to terminal)
+            }
+            // Ctrl+V = paste
+            if (event.ctrlKey && event.key === 'v') {
+                navigator.clipboard.readText().then(text => {
+                    if (window.chrome && window.chrome.webview) {
+                        window.chrome.webview.postMessage({
+                            type: 'input',
+                            data: text
+                        });
+                    }
+                });
+                return false; // Prevent default
+            }
+            // Ctrl+Shift+C = copy (alternative)
+            if (event.ctrlKey && event.shiftKey && event.key === 'C') {
+                navigator.clipboard.writeText(term.getSelection());
+                return false;
+            }
+            // Ctrl+Shift+V = paste (alternative)
+            if (event.ctrlKey && event.shiftKey && event.key === 'V') {
+                navigator.clipboard.readText().then(text => {
+                    if (window.chrome && window.chrome.webview) {
+                        window.chrome.webview.postMessage({
+                            type: 'input',
+                            data: text
+                        });
+                    }
+                });
+                return false;
+            }
+            return true; // Let other keys pass through
+        });
+
+        // Handle window resize
+        window.addEventListener('resize', () => {
+            fitAddon.fit();
+            // Notify host of new size
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage({
+                    type: 'resize',
+                    cols: term.cols,
+                    rows: term.rows
+                });
+            }
+        });
+
+        // Send ready message when terminal is initialized
+        setTimeout(() => {
+            fitAddon.fit();
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage({
+                    type: 'ready',
+                    cols: term.cols,
+                    rows: term.rows
+                });
+            }
+        }, 100);
+
+        // Send user input to host
+        term.onData(data => {
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage({
+                    type: 'input',
+                    data: data
+                });
+            }
+        });
+
+        // Receive output from host
+        window.receiveOutput = function(data) {
+            term.write(data);
+        };
+
+        // Clear terminal
+        window.clearTerminal = function() {
+            term.clear();
+        };
+
+        // Focus terminal
+        term.focus();
+    </script>
+</body>
+</html>

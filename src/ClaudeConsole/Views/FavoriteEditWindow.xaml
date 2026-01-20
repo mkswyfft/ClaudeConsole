@@ -1,0 +1,96 @@
+<Window x:Class="FavoriteEditWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Edit Favorite"
+        Height="320" Width="450"
+        WindowStartupLocation="CenterOwner"
+        Background="#1E1E1E"
+        ShowInTaskbar="False"
+        ResizeMode="NoResize"
+        Icon="/icon.ico"
+        Loaded="Window_Loaded">
+
+    <Window.Resources>
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="#CCCCCC"/>
+            <Setter Property="Margin" Value="0,0,0,5"/>
+            <Setter Property="FontSize" Value="12"/>
+        </Style>
+        <Style x:Key="FieldTextBox" TargetType="TextBox">
+            <Setter Property="Background" Value="#252526"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderBrush" Value="#3D3D3D"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="Margin" Value="0,0,0,15"/>
+            <Setter Property="CaretBrush" Value="White"/>
+        </Style>
+        <Style x:Key="DialogButton" TargetType="Button">
+            <Setter Property="Background" Value="#3D3D3D"/>
+            <Setter Property="Foreground" Value="#CCCCCC"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="20,8"/>
+            <Setter Property="Margin" Value="5,0"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="4"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="Background" Value="#4D4D4D"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter Property="Background" Value="#5D5D5D"/>
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="20">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <!-- Form Fields -->
+        <StackPanel Grid.Row="0">
+            <TextBlock Text="Name *" Style="{StaticResource FieldLabel}"/>
+            <TextBox x:Name="NameTextBox" Style="{StaticResource FieldTextBox}"/>
+
+            <TextBlock Text="Folder Path" Style="{StaticResource FieldLabel}"/>
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBox x:Name="FolderTextBox" Grid.Column="0" Style="{StaticResource FieldTextBox}" Margin="0,0,5,15"/>
+                <Button x:Name="BrowseButton" Grid.Column="1" Content="Browse..."
+                        Click="BrowseButton_Click" Style="{StaticResource DialogButton}"
+                        Padding="10,6" Margin="0,0,0,15"/>
+            </Grid>
+
+            <TextBlock Text="Command (optional)" Style="{StaticResource FieldLabel}"/>
+            <TextBox x:Name="CommandTextBox" Style="{StaticResource FieldTextBox}"/>
+
+            <TextBlock Text="Tip: Leave folder empty to use the current directory. Command runs after opening."
+                       Foreground="#666666" FontSize="11" TextWrapping="Wrap"/>
+        </StackPanel>
+
+        <!-- Buttons -->
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,15,0,0">
+            <Button x:Name="SaveButton" Content="Save" Click="SaveButton_Click" Style="{StaticResource DialogButton}" FontWeight="SemiBold"/>
+            <Button x:Name="CancelButton" Content="Cancel" Click="CancelButton_Click" Style="{StaticResource DialogButton}"/>
+        </StackPanel>
+    </Grid>
+</Window>

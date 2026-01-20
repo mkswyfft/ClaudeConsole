@@ -179,3 +179,74 @@ Example structure:
 - Claude CLI may need PTY emulation for full interactive mode
 - Consider using `--print` mode with streaming for better control
 - Process redirection works but buffering may affect output timing
+
+## UI Patterns
+
+### Slide-Out Panel Over WebView2
+
+WebView2 has an "airspace" issue where it renders in its own HWND and ignores WPF's ZIndex. To create a slide-out panel that overlays WebView2:
+
+**1. Use a Popup with Custom Placement:**
+```xml
+<Popup x:Name="MyPopup"
+       PlacementTarget="{Binding ElementName=ContentArea}"
+       Placement="Custom"
+       StaysOpen="True"
+       AllowsTransparency="True"
+       PopupAnimation="None">
+    <Border x:Name="MyPanel" Width="280" Background="#252526">
+        <Border.RenderTransform>
+            <TranslateTransform x:Name="MyPanelTransform" X="280"/>
+        </Border.RenderTransform>
+        <!-- Panel content here -->
+    </Border>
+</Popup>
+```
+
+**2. Add CustomPopupPlacementCallback in code-behind:**
+```vb
+' In constructor:
+MyPopup.CustomPopupPlacementCallback = AddressOf PlaceMyPopup
+
+' Callback function:
+Private Function PlaceMyPopup(popupSize As Size, targetSize As Size, offset As Point) As CustomPopupPlacement()
+    ' Position at right edge of target, overlapping it
+    Dim x = targetSize.Width - popupSize.Width
+    Dim y = 0.0
+    Return New CustomPopupPlacement() {
+        New CustomPopupPlacement(New Point(x, y), PopupPrimaryAxis.Horizontal)
+    }
+End Function
+```
+
+**3. Animate slide in/out:**
+```vb
+' Slide in from right
+Dim slideIn As New DoubleAnimation() With {
+    .From = 280, .To = 0,
+    .Duration = TimeSpan.FromMilliseconds(200),
+    .EasingFunction = New QuadraticEase() With {.EasingMode = EasingMode.EaseOut}
+}
+MyPanelTransform.BeginAnimation(TranslateTransform.XProperty, slideIn)
+
+' Slide out to right
+Dim slideOut As New DoubleAnimation() With {
+    .From = 0, .To = 280,
+    .Duration = TimeSpan.FromMilliseconds(200),
+    .EasingFunction = New QuadraticEase() With {.EasingMode = EasingMode.EaseIn}
+}
+AddHandler slideOut.Completed, Sub(s, args) MyPopup.IsOpen = False
+MyPanelTransform.BeginAnimation(TranslateTransform.XProperty, slideOut)
+```
+
+**Key points:**
+- `Placement="Custom"` with callback gives full control over positioning
+- `TranslateTransform` with X=280 initially hides panel off-screen to the right
+- Animation moves X from 280→0 (slide in) or 0→280 (slide out)
+- Popup has its own HWND so it renders above WebView2
+- Set panel height to match ContentArea.ActualHeight for full-height panels
+
+**Required import:**
+```vb
+Imports System.Windows.Controls.Primitives
+```

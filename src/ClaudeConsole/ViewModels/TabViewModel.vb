@@ -8,6 +8,7 @@ Imports CommunityToolkit.Mvvm.Input
 Imports ClaudeConsole.Models
 Imports ClaudeConsole.Services
 Imports ClaudeConsole.Utilities
+Imports ClaudeConsole.ConPty
 
 Namespace ViewModels
     ''' <summary>
@@ -25,7 +26,13 @@ Namespace ViewModels
         Private _title As String = "New Session"
         Private _inputText As String = String.Empty
         Private _isRunning As Boolean
+        Private _isProcessing As Boolean
+        Private _isSelected As Boolean
         Private _flowDocument As FlowDocument
+
+        ' ConPTY terminal owned by this tab (persists across view switches)
+        Private _terminal As ConPtyTerminal
+        Private _terminalStarted As Boolean = False
 
         ''' <summary>
         ''' Gets or sets the tab title.
@@ -52,7 +59,7 @@ Namespace ViewModels
         End Property
 
         ''' <summary>
-        ''' Gets whether the CLI is running.
+        ''' Gets whether the CLI session is active.
         ''' </summary>
         Public Property IsRunning As Boolean
             Get
@@ -60,6 +67,37 @@ Namespace ViewModels
             End Get
             Private Set(value As Boolean)
                 SetProperty(_isRunning, value)
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Sets the running state (called from TerminalView).
+        ''' </summary>
+        Public Sub SetRunningState(running As Boolean)
+            IsRunning = running
+        End Sub
+
+        ''' <summary>
+        ''' Gets whether a command is currently being processed.
+        ''' </summary>
+        Public Property IsProcessing As Boolean
+            Get
+                Return _isProcessing
+            End Get
+            Private Set(value As Boolean)
+                SetProperty(_isProcessing, value)
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets or sets whether this tab is selected (visible).
+        ''' </summary>
+        Public Property IsSelected As Boolean
+            Get
+                Return _isSelected
+            End Get
+            Set(value As Boolean)
+                SetProperty(_isSelected, value)
             End Set
         End Property
 
@@ -96,6 +134,86 @@ Namespace ViewModels
                 OnPropertyChanged(NameOf(WorkingDirectory))
             End Set
         End Property
+
+        ''' <summary>
+        ''' Gets the ConPTY terminal for this tab.
+        ''' </summary>
+        Public ReadOnly Property Terminal As ConPtyTerminal
+            Get
+                Return _terminal
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Gets whether the terminal has been started.
+        ''' </summary>
+        Public ReadOnly Property IsTerminalStarted As Boolean
+            Get
+                Return _terminalStarted
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Fired when terminal output is received.
+        ''' </summary>
+        Public Event TerminalOutputReceived As EventHandler(Of String)
+
+        ''' <summary>
+        ''' Fired when the terminal process exits.
+        ''' </summary>
+        Public Event TerminalExited As EventHandler(Of Integer)
+
+        ''' <summary>
+        ''' Starts the ConPTY terminal if not already started.
+        ''' </summary>
+        Public Function StartTerminal(cols As Short, rows As Short) As Boolean
+            If _terminalStarted Then
+                Return True
+            End If
+
+            _terminal = New ConPtyTerminal()
+            AddHandler _terminal.OutputReceived, AddressOf OnTerminalOutput
+            AddHandler _terminal.ProcessExited, AddressOf OnTerminalExited
+
+            Dim workDir = If(WorkingDirectory, Environment.GetFolderPath(Environment.SpecialFolder.UserProfile))
+            If _terminal.Start("claude", workDir, cols, rows) Then
+                _terminalStarted = True
+                Title = $"Claude - {IO.Path.GetFileName(workDir)}"
+                IsRunning = True
+                Return True
+            Else
+                Return False
+            End If
+        End Function
+
+        ''' <summary>
+        ''' Sends input to the terminal.
+        ''' </summary>
+        Public Sub SendTerminalInput(text As String)
+            If _terminal IsNot Nothing AndAlso _terminal.IsRunning Then
+                _terminal.SendInput(text)
+            End If
+        End Sub
+
+        ''' <summary>
+        ''' Resizes the terminal.
+        ''' </summary>
+        Public Sub ResizeTerminal(cols As Short, rows As Short)
+            If _terminal IsNot Nothing AndAlso _terminal.IsRunning Then
+                _terminal.Resize(cols, rows)
+            End If
+        End Sub
+
+        Private Sub OnTerminalOutput(sender As Object, output As String)
+            RaiseEvent TerminalOutputReceived(Me, output)
+        End Sub
+
+        Private Sub OnTerminalExited(sender As Object, exitCode As Integer)
+            _dispatcher.Invoke(Sub()
+                                   IsRunning = False
+                                   RaiseEvent TerminalExited(Me, exitCode)
+                               End Sub)
+        End Sub
 
         ''' <summary>
         ''' Command to send input to the CLI.
@@ -149,10 +267,11 @@ Namespace ViewModels
             AddHandler _cliService.OutputReceived, AddressOf OnOutputReceived
             AddHandler _cliService.ErrorReceived, AddressOf OnErrorReceived
             AddHandler _cliService.SessionEnded, AddressOf OnSessionEnded
+            AddHandler _cliService.ResponseComplete, AddressOf OnResponseComplete
         End Sub
 
         Private Function CanSend() As Boolean
-            Return IsRunning AndAlso Not String.IsNullOrWhiteSpace(InputText)
+            Return IsRunning AndAlso Not IsProcessing AndAlso Not String.IsNullOrWhiteSpace(InputText)
         End Function
 
         Private Sub ExecuteSend()
@@ -160,8 +279,13 @@ Namespace ViewModels
                 Return
             End If
 
-            ' Show user input in output
-            AppendOutput($"> {InputText}{Environment.NewLine}", Brushes.Cyan)
+            ' In ConPTY mode, don't echo input (terminal will show it)
+            ' In print mode, show user input
+            If Not _cliService.UseConPty Then
+                AppendOutput($"> {InputText}{Environment.NewLine}", Brushes.Cyan)
+                IsProcessing = True
+                UpdateCommandStates()
+            End If
 
             _cliService.SendInput(InputText)
             InputText = String.Empty
@@ -204,10 +328,19 @@ Namespace ViewModels
             AppendOutput(errorText, Brushes.Red)
         End Sub
 
+        Private Sub OnResponseComplete(sender As Object, exitCode As Integer)
+            _dispatcher.Invoke(Sub()
+                                   IsProcessing = False
+                                   AppendOutput(Environment.NewLine, Brushes.Gray)
+                                   UpdateCommandStates()
+                               End Sub)
+        End Sub
+
         Private Sub OnSessionEnded(sender As Object, exitCode As Integer)
             _dispatcher.Invoke(Sub()
                                    IsRunning = False
-                                   AppendOutput($"{Environment.NewLine}Session ended (exit code: {exitCode}){Environment.NewLine}", Brushes.Yellow)
+                                   IsProcessing = False
+                                   AppendOutput($"{Environment.NewLine}Session ended.{Environment.NewLine}", Brushes.Yellow)
                                    UpdateCommandStates()
                                End Sub)
         End Sub
@@ -287,8 +420,18 @@ Namespace ViewModels
             RemoveHandler _cliService.OutputReceived, AddressOf OnOutputReceived
             RemoveHandler _cliService.ErrorReceived, AddressOf OnErrorReceived
             RemoveHandler _cliService.SessionEnded, AddressOf OnSessionEnded
+            RemoveHandler _cliService.ResponseComplete, AddressOf OnResponseComplete
 
             _cliService.Dispose()
+
+            ' Clean up ConPTY terminal
+            If _terminal IsNot Nothing Then
+                RemoveHandler _terminal.OutputReceived, AddressOf OnTerminalOutput
+                RemoveHandler _terminal.ProcessExited, AddressOf OnTerminalExited
+                _terminal.Dispose()
+                _terminal = Nothing
+            End If
+
             _isDisposed = True
         End Sub
     End Class
