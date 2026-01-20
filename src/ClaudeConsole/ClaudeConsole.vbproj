@@ -39,6 +39,7 @@
 
   <ItemGroup>
     <Resource Include="icon.ico" />
+    <Resource Include="logo.png" />
   </ItemGroup>
 
 </Project>

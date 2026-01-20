@@ -493,8 +493,18 @@
                             <!-- About Section -->
                             <Border Height="1" Background="#3D3D3D" Margin="0,5,0,15"/>
                             <TextBlock Text="ABOUT" FontSize="11" Foreground="#888888" Margin="0,0,0,10"/>
-                            <TextBlock x:Name="VersionText" Text="ClaudeConsole" Foreground="#666666" FontSize="11"/>
-                            <TextBlock Text="A terminal interface for Claude AI" Foreground="#666666" FontSize="11"/>
+                            <StackPanel HorizontalAlignment="Center" Margin="0,5,0,10">
+                                <Image Source="pack://application:,,,/logo.png"
+                                       Width="64" Height="64"
+                                       RenderOptions.BitmapScalingMode="HighQuality"
+                                       Margin="0,0,0,10"/>
+                                <TextBlock x:Name="VersionText" Text="ClaudeConsole"
+                                           Foreground="#CCCCCC" FontSize="12" FontWeight="SemiBold"
+                                           HorizontalAlignment="Center"/>
+                                <TextBlock Text="A terminal interface for Claude AI"
+                                           Foreground="#888888" FontSize="11"
+                                           HorizontalAlignment="Center" Margin="0,3,0,0"/>
+                            </StackPanel>
                         </StackPanel>
                     </ScrollViewer>
                 </Grid>
