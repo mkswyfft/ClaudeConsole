@@ -74,6 +74,14 @@ Class MainWindow
         Catch
             ' Ignore if not supported on this Windows version
         End Try
+
+        ' Set version text from assembly info
+        Try
+            Dim version = System.Reflection.Assembly.GetExecutingAssembly().GetName().Version
+            VersionText.Text = $"ClaudeConsole v{version.Major}.{version.Minor}.{version.Build}"
+        Catch
+            VersionText.Text = "ClaudeConsole"
+        End Try
     End Sub
 
     Private Sub Window_Closing(sender As Object, e As ComponentModel.CancelEventArgs)
