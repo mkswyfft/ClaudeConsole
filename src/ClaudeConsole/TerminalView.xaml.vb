@@ -3,6 +3,7 @@ Option Explicit On
 
 Imports System.IO
 Imports System.Text.Json
+Imports System.Threading.Tasks
 Imports ClaudeConsole.ViewModels
 Imports Microsoft.Web.WebView2.Core
 
@@ -100,7 +101,10 @@ Partial Class TerminalView
                         If root.TryGetProperty("rows", rowsElement) Then
                             rows = rowsElement.GetInt16()
                         End If
-                        If Not vm.StartTerminal(cols, rows) Then
+                        If vm.StartTerminal(cols, rows) Then
+                            ' Send pending command if one exists (e.g., from favorites)
+                            SendPendingCommandIfAny(vm)
+                        Else
                             SendOutputToXterm($"Failed to start terminal: {vm.Terminal?.LastError}{vbCrLf}")
                         End If
                     End If
@@ -138,6 +142,23 @@ Partial Class TerminalView
         Catch ex As Exception
             ' Ignore errors
         End Try
+    End Sub
+
+    ''' <summary>
+    ''' Sends any pending command from the TabViewModel after a short delay.
+    ''' The delay allows Claude CLI to fully initialize before receiving input.
+    ''' </summary>
+    Private Async Sub SendPendingCommandIfAny(vm As TabViewModel)
+        If vm Is Nothing OrElse Not vm.HasPendingCommand Then Return
+
+        ' Wait a moment for Claude CLI to initialize before sending command
+        Await Task.Delay(500)
+
+        Dim command = vm.ConsumePendingCommand()
+        If Not String.IsNullOrWhiteSpace(command) Then
+            ' Send the command text followed by Enter to execute it
+            vm.SendTerminalInput(command & vbCr)
+        End If
     End Sub
 
     ''' <summary>

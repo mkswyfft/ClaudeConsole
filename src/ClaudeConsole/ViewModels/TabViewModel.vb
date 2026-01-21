@@ -33,6 +33,7 @@ Namespace ViewModels
         ' ConPTY terminal owned by this tab (persists across view switches)
         Private _terminal As ConPtyTerminal
         Private _terminalStarted As Boolean = False
+        Private _pendingCommand As String = String.Empty
 
         ''' <summary>
         ''' Gets or sets the tab title.
@@ -161,6 +162,36 @@ Namespace ViewModels
                 Return _terminalStarted
             End Get
         End Property
+
+        ''' <summary>
+        ''' Gets or sets a command to run after the terminal starts.
+        ''' </summary>
+        Public Property PendingCommand As String
+            Get
+                Return _pendingCommand
+            End Get
+            Set(value As String)
+                _pendingCommand = If(value, String.Empty)
+            End Set
+        End Property
+
+        ''' <summary>
+        ''' Gets whether there is a pending command to execute.
+        ''' </summary>
+        Public ReadOnly Property HasPendingCommand As Boolean
+            Get
+                Return Not String.IsNullOrWhiteSpace(_pendingCommand)
+            End Get
+        End Property
+
+        ''' <summary>
+        ''' Consumes and returns the pending command, clearing it.
+        ''' </summary>
+        Public Function ConsumePendingCommand() As String
+            Dim cmd = _pendingCommand
+            _pendingCommand = String.Empty
+            Return cmd
+        End Function
 
         ''' <summary>
         ''' Fired when terminal output is received.

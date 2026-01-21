@@ -284,6 +284,7 @@
                          Foreground="#CCCCCC"
                          SelectionMode="Single"
                          MouseDoubleClick="FavoritesList_MouseDoubleClick"
+                         MouseRightButtonUp="FavoritesList_MouseRightButtonUp"
                          ScrollViewer.VerticalScrollBarVisibility="Auto">
                     <ListBox.Resources>
                         <Style TargetType="ScrollBar" BasedOn="{StaticResource DarkScrollBar}"/>
@@ -346,16 +347,6 @@
                         <Style TargetType="ListBoxItem">
                             <Setter Property="Background" Value="Transparent"/>
                             <Setter Property="Padding" Value="10,6"/>
-                            <Setter Property="ContextMenu">
-                                <Setter.Value>
-                                    <ContextMenu>
-                                        <MenuItem Header="Open" Click="FavoriteContextMenu_Open"/>
-                                        <MenuItem Header="Edit" Click="FavoriteContextMenu_Edit"/>
-                                        <Separator/>
-                                        <MenuItem Header="Delete" Click="FavoriteContextMenu_Delete"/>
-                                    </ContextMenu>
-                                </Setter.Value>
-                            </Setter>
                             <Setter Property="Template">
                                 <Setter.Value>
                                     <ControlTemplate TargetType="ListBoxItem">

@@ -254,7 +254,7 @@ Class MainWindow
     End Sub
 
     Private Sub OpenFavorite(favorite As Favorite)
-        _viewModel.CreateNewTabWithFavorite(favorite.Folder, favorite.Name)
+        _viewModel.CreateNewTabWithFavorite(favorite.Folder, favorite.Name, favorite.Command)
 
         ' Optionally close the panel after opening
         ' ToggleFavoritesPanel()
@@ -306,37 +306,45 @@ Class MainWindow
         End If
     End Sub
 
-    Private Sub FavoriteContextMenu_Open(sender As Object, e As RoutedEventArgs)
-        Dim menuItem = TryCast(sender, MenuItem)
-        Dim contextMenu = TryCast(menuItem?.Parent, ContextMenu)
-        Dim listBoxItem = TryCast(contextMenu?.PlacementTarget, ListBoxItem)
-        Dim favorite = TryCast(listBoxItem?.DataContext, Favorite)
+    Private Sub FavoritesList_MouseRightButtonUp(sender As Object, e As MouseButtonEventArgs)
+        ' Find the favorite that was right-clicked
+        Dim listBox = TryCast(sender, ListBox)
+        If listBox Is Nothing Then Return
 
-        If favorite IsNot Nothing Then
-            OpenFavorite(favorite)
-        End If
-    End Sub
+        ' Get the item under the mouse
+        Dim element = TryCast(e.OriginalSource, DependencyObject)
+        While element IsNot Nothing AndAlso Not TypeOf element Is ListBoxItem
+            element = VisualTreeHelper.GetParent(element)
+        End While
 
-    Private Sub FavoriteContextMenu_Edit(sender As Object, e As RoutedEventArgs)
-        Dim menuItem = TryCast(sender, MenuItem)
-        Dim contextMenu = TryCast(menuItem?.Parent, ContextMenu)
-        Dim listBoxItem = TryCast(contextMenu?.PlacementTarget, ListBoxItem)
-        Dim favorite = TryCast(listBoxItem?.DataContext, Favorite)
+        Dim listBoxItem = TryCast(element, ListBoxItem)
+        If listBoxItem Is Nothing Then Return
 
-        If favorite IsNot Nothing Then
-            EditFavorite(favorite)
-        End If
-    End Sub
+        Dim favorite = TryCast(listBoxItem.DataContext, Favorite)
+        If favorite Is Nothing Then Return
 
-    Private Sub FavoriteContextMenu_Delete(sender As Object, e As RoutedEventArgs)
-        Dim menuItem = TryCast(sender, MenuItem)
-        Dim contextMenu = TryCast(menuItem?.Parent, ContextMenu)
-        Dim listBoxItem = TryCast(contextMenu?.PlacementTarget, ListBoxItem)
-        Dim favorite = TryCast(listBoxItem?.DataContext, Favorite)
+        ' Select the item
+        listBox.SelectedItem = favorite
 
-        If favorite IsNot Nothing Then
-            DeleteFavoriteWithConfirmation(favorite)
-        End If
+        ' Create and show context menu
+        Dim contextMenu As New ContextMenu()
+
+        Dim openItem As New MenuItem() With {.Header = "Open"}
+        AddHandler openItem.Click, Sub(s, args) OpenFavorite(favorite)
+        contextMenu.Items.Add(openItem)
+
+        Dim editItem As New MenuItem() With {.Header = "Edit"}
+        AddHandler editItem.Click, Sub(s, args) EditFavorite(favorite)
+        contextMenu.Items.Add(editItem)
+
+        contextMenu.Items.Add(New Separator())
+
+        Dim deleteItem As New MenuItem() With {.Header = "Delete"}
+        AddHandler deleteItem.Click, Sub(s, args) DeleteFavoriteWithConfirmation(favorite)
+        contextMenu.Items.Add(deleteItem)
+
+        contextMenu.IsOpen = True
+        e.Handled = True
     End Sub
 
     Private Sub EditFavorite(favorite As Favorite)

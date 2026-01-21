@@ -144,7 +144,7 @@ Namespace ViewModels
         End Sub
 
         Private Sub CreateNewTab()
-            CreateNewTabWithFavorite(Nothing, Nothing)
+            CreateNewTabWithFavorite(Nothing, Nothing, Nothing)
         End Sub
 
         ''' <summary>
@@ -153,6 +153,16 @@ Namespace ViewModels
         ''' <param name="workingDirectory">The working directory for the new tab.</param>
         ''' <param name="title">The title for the new tab.</param>
         Public Sub CreateNewTabWithFavorite(workingDirectory As String, title As String)
+            CreateNewTabWithFavorite(workingDirectory, title, Nothing)
+        End Sub
+
+        ''' <summary>
+        ''' Creates a new tab with the specified working directory, title, and optional command.
+        ''' </summary>
+        ''' <param name="workingDirectory">The working directory for the new tab.</param>
+        ''' <param name="title">The title for the new tab.</param>
+        ''' <param name="command">Optional command to run after the terminal starts.</param>
+        Public Sub CreateNewTabWithFavorite(workingDirectory As String, title As String, command As String)
             Dim tab As New TabViewModel(_dispatcher)
 
             If Not String.IsNullOrWhiteSpace(workingDirectory) Then
@@ -163,6 +173,10 @@ Namespace ViewModels
                 tab.Title = title
             Else
                 tab.Title = $"Session {Tabs.Count + 1}"
+            End If
+
+            If Not String.IsNullOrWhiteSpace(command) Then
+                tab.PendingCommand = command
             End If
 
             AddHandler tab.CloseRequested, AddressOf OnTabCloseRequested
