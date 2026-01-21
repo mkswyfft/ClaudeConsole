@@ -53,6 +53,35 @@ Class MainWindow
         ' Reposition popup when window moves or resizes
         AddHandler LocationChanged, AddressOf OnWindowPositionChanged
         AddHandler SizeChanged, AddressOf OnWindowPositionChanged
+
+        ' Close popups when window is minimized or deactivated
+        AddHandler StateChanged, AddressOf OnWindowStateChanged
+        AddHandler Deactivated, AddressOf OnWindowDeactivated
+    End Sub
+
+    Private Sub OnWindowStateChanged(sender As Object, e As EventArgs)
+        ' Close panels when window is minimized
+        If WindowState = WindowState.Minimized Then
+            CloseAllPanels()
+        End If
+    End Sub
+
+    Private Sub OnWindowDeactivated(sender As Object, e As EventArgs)
+        ' Close panels when window loses focus (e.g., when a dialog opens from outside)
+        ' Note: We don't close when our own dialogs open because we handle that explicitly
+    End Sub
+
+    Private Sub CloseAllPanels()
+        If _isFavoritesPanelOpen Then
+            _isFavoritesPanelOpen = False
+            FavoritesPopup.IsOpen = False
+            FavoritesIcon.Fill = New SolidColorBrush(CType(ColorConverter.ConvertFromString("#5A5A5A"), Color))
+        End If
+        If _isSettingsPanelOpen Then
+            _isSettingsPanelOpen = False
+            SettingsPopup.IsOpen = False
+            SettingsIcon.Fill = New SolidColorBrush(CType(ColorConverter.ConvertFromString("#5A5A5A"), Color))
+        End If
     End Sub
 
     Private Function PlaceRightSidePopup(popupSize As Size, targetSize As Size, offset As Point) As CustomPopupPlacement()
@@ -232,11 +261,19 @@ Class MainWindow
     End Sub
 
     Private Sub AddFavorite_Click(sender As Object, e As RoutedEventArgs)
+        ' Close the panel before showing dialog to avoid z-order issues
+        Dim wasOpen = _isFavoritesPanelOpen
+        If wasOpen Then ToggleFavoritesPanel()
+
         Dim editWindow As New FavoriteEditWindow()
         editWindow.Owner = Me
         If editWindow.ShowDialog() = True Then
             _favoritesService.Add(editWindow.Favorite)
-            RefreshFavoritesList()
+        End If
+
+        ' Reopen panel and refresh
+        If wasOpen Then
+            ToggleFavoritesPanel()
         End If
     End Sub
 
@@ -244,6 +281,14 @@ Class MainWindow
         Dim button = TryCast(sender, Button)
         Dim favorite = TryCast(button?.Tag, Favorite)
         If favorite Is Nothing Then Return
+
+        DeleteFavoriteWithConfirmation(favorite)
+    End Sub
+
+    Private Sub DeleteFavoriteWithConfirmation(favorite As Favorite)
+        ' Close the panel before showing dialog to avoid z-order issues
+        Dim wasOpen = _isFavoritesPanelOpen
+        If wasOpen Then ToggleFavoritesPanel()
 
         Dim result = MessageBox.Show(
             $"Delete '{favorite.Name}'?",
@@ -253,7 +298,61 @@ Class MainWindow
 
         If result = MessageBoxResult.Yes Then
             _favoritesService.Remove(favorite)
-            RefreshFavoritesList()
+        End If
+
+        ' Reopen panel and refresh
+        If wasOpen Then
+            ToggleFavoritesPanel()
+        End If
+    End Sub
+
+    Private Sub FavoriteContextMenu_Open(sender As Object, e As RoutedEventArgs)
+        Dim menuItem = TryCast(sender, MenuItem)
+        Dim contextMenu = TryCast(menuItem?.Parent, ContextMenu)
+        Dim listBoxItem = TryCast(contextMenu?.PlacementTarget, ListBoxItem)
+        Dim favorite = TryCast(listBoxItem?.DataContext, Favorite)
+
+        If favorite IsNot Nothing Then
+            OpenFavorite(favorite)
+        End If
+    End Sub
+
+    Private Sub FavoriteContextMenu_Edit(sender As Object, e As RoutedEventArgs)
+        Dim menuItem = TryCast(sender, MenuItem)
+        Dim contextMenu = TryCast(menuItem?.Parent, ContextMenu)
+        Dim listBoxItem = TryCast(contextMenu?.PlacementTarget, ListBoxItem)
+        Dim favorite = TryCast(listBoxItem?.DataContext, Favorite)
+
+        If favorite IsNot Nothing Then
+            EditFavorite(favorite)
+        End If
+    End Sub
+
+    Private Sub FavoriteContextMenu_Delete(sender As Object, e As RoutedEventArgs)
+        Dim menuItem = TryCast(sender, MenuItem)
+        Dim contextMenu = TryCast(menuItem?.Parent, ContextMenu)
+        Dim listBoxItem = TryCast(contextMenu?.PlacementTarget, ListBoxItem)
+        Dim favorite = TryCast(listBoxItem?.DataContext, Favorite)
+
+        If favorite IsNot Nothing Then
+            DeleteFavoriteWithConfirmation(favorite)
+        End If
+    End Sub
+
+    Private Sub EditFavorite(favorite As Favorite)
+        ' Close the panel before showing dialog to avoid z-order issues
+        Dim wasOpen = _isFavoritesPanelOpen
+        If wasOpen Then ToggleFavoritesPanel()
+
+        Dim editWindow As New FavoriteEditWindow(favorite)
+        editWindow.Owner = Me
+        If editWindow.ShowDialog() = True Then
+            _favoritesService.Update(editWindow.Favorite)
+        End If
+
+        ' Reopen panel and refresh
+        If wasOpen Then
+            ToggleFavoritesPanel()
         End If
     End Sub
 
@@ -306,11 +405,22 @@ Class MainWindow
     End Sub
 
     Private Sub ManageSessions_Click(sender As Object, e As RoutedEventArgs)
+        ' Close the panel before showing dialog to avoid z-order issues
+        Dim wasOpen = _isSettingsPanelOpen
+        If wasOpen Then ToggleSettingsPanel()
+
         Dim dialog As New ManageSessionsWindow(_sessionService)
         dialog.Owner = Me
 
-        If dialog.ShowDialog() = True AndAlso dialog.SessionsToRestore.Count > 0 Then
-            ' Restore selected sessions as new tabs
+        Dim shouldRestore = dialog.ShowDialog() = True AndAlso dialog.SessionsToRestore.Count > 0
+
+        ' Reopen panel
+        If wasOpen Then
+            ToggleSettingsPanel()
+        End If
+
+        ' Restore sessions after panel is reopened
+        If shouldRestore Then
             For Each session In dialog.SessionsToRestore
                 _viewModel.CreateNewTabWithFavorite(session.WorkingDirectory, session.Title)
             Next
