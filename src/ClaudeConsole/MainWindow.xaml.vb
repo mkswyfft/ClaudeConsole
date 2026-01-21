@@ -13,6 +13,7 @@ Class MainWindow
     Private ReadOnly _viewModel As MainViewModel
     Private ReadOnly _favoritesService As FavoritesService
     Private ReadOnly _sessionService As SessionService
+    Private ReadOnly _settingsService As SettingsService
     Private _isFavoritesPanelOpen As Boolean = False
     Private _isSettingsPanelOpen As Boolean = False
 
@@ -26,11 +27,16 @@ Class MainWindow
     Public Sub New()
         InitializeComponent()
 
-        ' Initialize session service first (before creating tabs)
+        ' Initialize settings service first
+        _settingsService = New SettingsService()
+        _settingsService.Load()
+
+        ' Initialize session service
         _sessionService = New SessionService()
         _sessionService.Load()
 
-        _viewModel = New MainViewModel(Dispatcher, _sessionService)
+        ' Create view model with restore preference from settings
+        _viewModel = New MainViewModel(Dispatcher, _sessionService, _settingsService.Settings.RestoreSessionsOnStartup)
         DataContext = _viewModel
 
         ' Initialize favorites service
@@ -87,6 +93,39 @@ Class MainWindow
         Catch
             VersionText.Text = "ClaudeConsole"
         End Try
+
+        ' Initialize settings UI from saved settings
+        InitializeSettingsUI()
+    End Sub
+
+    Private Sub InitializeSettingsUI()
+        ' Set checkbox states from settings
+        RestoreSessionsCheckBox.IsChecked = _settingsService.Settings.RestoreSessionsOnStartup
+        AutoSaveSessionsCheckBox.IsChecked = _settingsService.Settings.AutoSaveSessionsOnClose
+
+        ' Set font size dropdown
+        For Each item As ComboBoxItem In FontSizeComboBox.Items
+            If CStr(item.Tag) = _settingsService.Settings.TerminalFontSize.ToString() Then
+                FontSizeComboBox.SelectedItem = item
+                Exit For
+            End If
+        Next
+
+        ' Set Claude CLI path
+        ClaudePathTextBox.Text = _settingsService.Settings.ClaudeCliPath
+
+        ' Wire up checkbox change events
+        AddHandler RestoreSessionsCheckBox.Checked, AddressOf OnSettingsCheckBoxChanged
+        AddHandler RestoreSessionsCheckBox.Unchecked, AddressOf OnSettingsCheckBoxChanged
+        AddHandler AutoSaveSessionsCheckBox.Checked, AddressOf OnSettingsCheckBoxChanged
+        AddHandler AutoSaveSessionsCheckBox.Unchecked, AddressOf OnSettingsCheckBoxChanged
+    End Sub
+
+    Private Sub OnSettingsCheckBoxChanged(sender As Object, e As RoutedEventArgs)
+        ' Update settings from UI
+        _settingsService.Settings.RestoreSessionsOnStartup = RestoreSessionsCheckBox.IsChecked.GetValueOrDefault(False)
+        _settingsService.Settings.AutoSaveSessionsOnClose = AutoSaveSessionsCheckBox.IsChecked.GetValueOrDefault(True)
+        _settingsService.Save()
     End Sub
 
     Private Sub Window_Closing(sender As Object, e As ComponentModel.CancelEventArgs)
@@ -300,6 +339,12 @@ Class MainWindow
 
         ' Apply font size to all open terminal views
         ApplyFontSizeToAllTerminals(fontSize)
+
+        ' Save setting (check if settings service is initialized to avoid error during startup)
+        If _settingsService IsNot Nothing Then
+            _settingsService.Settings.TerminalFontSize = fontSize
+            _settingsService.Save()
+        End If
     End Sub
 
     Private Sub ApplyFontSizeToAllTerminals(fontSize As Integer)

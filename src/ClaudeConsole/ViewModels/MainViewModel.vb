@@ -72,14 +72,14 @@ Namespace ViewModels
         Public ReadOnly Property CloseAllTabsCommand As IRelayCommand
 
         Public Sub New()
-            Me.New(Nothing, Nothing)
+            Me.New(Nothing, Nothing, False)
         End Sub
 
         Public Sub New(dispatcher As Dispatcher)
-            Me.New(dispatcher, Nothing)
+            Me.New(dispatcher, Nothing, False)
         End Sub
 
-        Public Sub New(dispatcher As Dispatcher, sessionService As SessionService)
+        Public Sub New(dispatcher As Dispatcher, sessionService As SessionService, restoreSessions As Boolean)
             _dispatcher = If(dispatcher, Dispatcher.CurrentDispatcher)
             _sessionService = sessionService
 
@@ -88,8 +88,10 @@ Namespace ViewModels
             CloseTabCommand = New RelayCommand(Of TabViewModel)(AddressOf ExecuteCloseTab, AddressOf CanCloseTab)
             CloseAllTabsCommand = New RelayCommand(AddressOf ExecuteCloseAllTabs, AddressOf CanCloseAllTabs)
 
-            ' Try to restore saved sessions, or create initial tab
-            If Not TryRestoreSessions() Then
+            ' Restore saved sessions if enabled, otherwise create initial tab
+            If restoreSessions AndAlso TryRestoreSessions() Then
+                ' Sessions were restored
+            Else
                 CreateNewTab()
             End If
         End Sub
