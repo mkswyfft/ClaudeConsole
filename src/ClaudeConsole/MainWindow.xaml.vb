@@ -286,4 +286,42 @@ Class MainWindow
                         "• Ctrl+T - New Tab" & vbCrLf &
                         "• Ctrl+W - Close Tab", "About ClaudeConsole", MessageBoxButton.OK, MessageBoxImage.Information)
     End Sub
+
+    Private Sub FontSizeComboBox_SelectionChanged(sender As Object, e As SelectionChangedEventArgs)
+        Dim comboBox = TryCast(sender, ComboBox)
+        Dim selectedItem = TryCast(comboBox?.SelectedItem, ComboBoxItem)
+        If selectedItem Is Nothing Then Return
+
+        Dim fontSizeStr = TryCast(selectedItem.Tag, String)
+        If String.IsNullOrEmpty(fontSizeStr) Then Return
+
+        Dim fontSize As Integer
+        If Not Integer.TryParse(fontSizeStr, fontSize) Then Return
+
+        ' Apply font size to all open terminal views
+        ApplyFontSizeToAllTerminals(fontSize)
+    End Sub
+
+    Private Sub ApplyFontSizeToAllTerminals(fontSize As Integer)
+        ' Find all TerminalView controls in the visual tree and update their font size
+        Dim terminalViews = FindVisualChildren(Of TerminalView)(ContentArea)
+        For Each terminalView In terminalViews
+            terminalView.SetFontSize(fontSize)
+        Next
+    End Sub
+
+    Private Shared Iterator Function FindVisualChildren(Of T As DependencyObject)(parent As DependencyObject) As IEnumerable(Of T)
+        If parent Is Nothing Then Return
+
+        Dim childrenCount = VisualTreeHelper.GetChildrenCount(parent)
+        For i = 0 To childrenCount - 1
+            Dim child = VisualTreeHelper.GetChild(parent, i)
+            If TypeOf child Is T Then
+                Yield DirectCast(child, T)
+            End If
+            For Each grandChild In FindVisualChildren(Of T)(child)
+                Yield grandChild
+            Next
+        Next
+    End Function
 End Class

@@ -180,6 +180,25 @@
             term.clear();
         };
 
+        // Set font size
+        window.setFontSize = function(size) {
+            term.options.fontSize = size;
+            fitAddon.fit();
+            // Notify host of new size after font change
+            if (window.chrome && window.chrome.webview) {
+                window.chrome.webview.postMessage({
+                    type: 'resize',
+                    cols: term.cols,
+                    rows: term.rows
+                });
+            }
+        };
+
+        // Get current font size
+        window.getFontSize = function() {
+            return term.options.fontSize;
+        };
+
         // Focus terminal
         term.focus();
     </script>

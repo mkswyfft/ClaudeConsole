@@ -436,7 +436,8 @@
                             <ComboBox x:Name="FontSizeComboBox"
                                       Background="#3D3D3D"
                                       Foreground="White"
-                                      Margin="0,0,0,15">
+                                      Margin="0,0,0,15"
+                                      SelectionChanged="FontSizeComboBox_SelectionChanged">
                                 <ComboBoxItem Content="12" Tag="12"/>
                                 <ComboBoxItem Content="14" Tag="14" IsSelected="True"/>
                                 <ComboBoxItem Content="16" Tag="16"/>

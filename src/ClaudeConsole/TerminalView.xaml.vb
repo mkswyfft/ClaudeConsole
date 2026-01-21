@@ -140,6 +140,19 @@ Partial Class TerminalView
         End Try
     End Sub
 
+    ''' <summary>
+    ''' Sets the terminal font size.
+    ''' </summary>
+    Public Sub SetFontSize(size As Integer)
+        If WebView?.CoreWebView2 IsNot Nothing AndAlso _isWebViewReady Then
+            Try
+                WebView.CoreWebView2.ExecuteScriptAsync($"setFontSize({size})")
+            Catch ex As Exception
+                ' Ignore errors
+            End Try
+        End If
+    End Sub
+
     Private Function GetEmbeddedTerminalHtml() As String
         Return "<!DOCTYPE html>
 <html>
