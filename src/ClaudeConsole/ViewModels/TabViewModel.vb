@@ -136,6 +136,15 @@ Namespace ViewModels
         End Property
 
         ''' <summary>
+        ''' Gets when the session was created.
+        ''' </summary>
+        Public ReadOnly Property CreatedAt As DateTime
+            Get
+                Return _session.CreatedAt
+            End Get
+        End Property
+
+        ''' <summary>
         ''' Gets the ConPTY terminal for this tab.
         ''' </summary>
         Public ReadOnly Property Terminal As ConPtyTerminal

@@ -5,6 +5,8 @@ Imports System.Collections.ObjectModel
 Imports System.Windows.Threading
 Imports CommunityToolkit.Mvvm.ComponentModel
 Imports CommunityToolkit.Mvvm.Input
+Imports ClaudeConsole.Models
+Imports ClaudeConsole.Services
 
 Namespace ViewModels
     ''' <summary>
@@ -14,6 +16,7 @@ Namespace ViewModels
         Inherits ObservableObject
 
         Private ReadOnly _dispatcher As Dispatcher
+        Private ReadOnly _sessionService As SessionService
         Private _selectedTab As TabViewModel
         Private _selectedTabIndex As Integer
 
@@ -69,20 +72,48 @@ Namespace ViewModels
         Public ReadOnly Property CloseAllTabsCommand As IRelayCommand
 
         Public Sub New()
-            Me.New(Nothing)
+            Me.New(Nothing, Nothing)
         End Sub
 
         Public Sub New(dispatcher As Dispatcher)
+            Me.New(dispatcher, Nothing)
+        End Sub
+
+        Public Sub New(dispatcher As Dispatcher, sessionService As SessionService)
             _dispatcher = If(dispatcher, Dispatcher.CurrentDispatcher)
+            _sessionService = sessionService
 
             ' Initialize commands
             NewTabCommand = New RelayCommand(AddressOf ExecuteNewTab)
             CloseTabCommand = New RelayCommand(Of TabViewModel)(AddressOf ExecuteCloseTab, AddressOf CanCloseTab)
             CloseAllTabsCommand = New RelayCommand(AddressOf ExecuteCloseAllTabs, AddressOf CanCloseAllTabs)
 
-            ' Create initial tab
-            CreateNewTab()
+            ' Try to restore saved sessions, or create initial tab
+            If Not TryRestoreSessions() Then
+                CreateNewTab()
+            End If
         End Sub
+
+        ''' <summary>
+        ''' Attempts to restore saved sessions from the session service.
+        ''' </summary>
+        ''' <returns>True if sessions were restored, False otherwise.</returns>
+        Private Function TryRestoreSessions() As Boolean
+            If _sessionService Is Nothing OrElse _sessionService.Count = 0 Then
+                Return False
+            End If
+
+            Dim sessions = _sessionService.GetSessionsForRestore()
+            If sessions.Count = 0 Then
+                Return False
+            End If
+
+            For Each savedSession In sessions
+                CreateNewTabWithFavorite(savedSession.WorkingDirectory, savedSession.Title)
+            Next
+
+            Return True
+        End Function
 
         Private Sub ExecuteNewTab()
             CreateNewTab()

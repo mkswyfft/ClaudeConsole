@@ -12,6 +12,7 @@ Imports ClaudeConsole.ViewModels
 Class MainWindow
     Private ReadOnly _viewModel As MainViewModel
     Private ReadOnly _favoritesService As FavoritesService
+    Private ReadOnly _sessionService As SessionService
     Private _isFavoritesPanelOpen As Boolean = False
     Private _isSettingsPanelOpen As Boolean = False
 
@@ -25,7 +26,11 @@ Class MainWindow
     Public Sub New()
         InitializeComponent()
 
-        _viewModel = New MainViewModel(Dispatcher)
+        ' Initialize session service first (before creating tabs)
+        _sessionService = New SessionService()
+        _sessionService.Load()
+
+        _viewModel = New MainViewModel(Dispatcher, _sessionService)
         DataContext = _viewModel
 
         ' Initialize favorites service
@@ -85,8 +90,32 @@ Class MainWindow
     End Sub
 
     Private Sub Window_Closing(sender As Object, e As ComponentModel.CancelEventArgs)
+        ' Save sessions if auto-save is enabled
+        If AutoSaveSessionsCheckBox.IsChecked = True Then
+            SaveCurrentSessions()
+        End If
+
         ' Clean up all sessions before closing
         _viewModel.Shutdown()
+    End Sub
+
+    Private Sub SaveCurrentSessions()
+        Dim sessionsToSave As New List(Of SavedSession)()
+
+        For i = 0 To _viewModel.Tabs.Count - 1
+            Dim tab = _viewModel.Tabs(i)
+            Dim savedSession As New SavedSession() With {
+                .Id = tab.SessionId,
+                .Title = tab.Title,
+                .WorkingDirectory = tab.WorkingDirectory,
+                .CreatedAt = tab.CreatedAt,
+                .LastAccessedAt = DateTime.Now,
+                .TabIndex = i
+            }
+            sessionsToSave.Add(savedSession)
+        Next
+
+        _sessionService.SaveAll(sessionsToSave)
     End Sub
 
     Private Sub FavoritesButton_Click(sender As Object, e As RoutedEventArgs)
@@ -238,11 +267,15 @@ Class MainWindow
     End Sub
 
     Private Sub ManageSessions_Click(sender As Object, e As RoutedEventArgs)
-        MessageBox.Show("Session management will be available in a future update." & vbCrLf & vbCrLf &
-                        "This feature will allow you to:" & vbCrLf &
-                        "• View saved sessions" & vbCrLf &
-                        "• Restore previous sessions" & vbCrLf &
-                        "• Delete old sessions", "Manage Sessions", MessageBoxButton.OK, MessageBoxImage.Information)
+        Dim dialog As New ManageSessionsWindow(_sessionService)
+        dialog.Owner = Me
+
+        If dialog.ShowDialog() = True AndAlso dialog.SessionsToRestore.Count > 0 Then
+            ' Restore selected sessions as new tabs
+            For Each session In dialog.SessionsToRestore
+                _viewModel.CreateNewTabWithFavorite(session.WorkingDirectory, session.Title)
+            Next
+        End If
     End Sub
 
     Private Sub HelpButton_Click(sender As Object, e As RoutedEventArgs)
